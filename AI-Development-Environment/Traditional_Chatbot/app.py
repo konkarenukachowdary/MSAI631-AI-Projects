@@ -6,6 +6,22 @@ import datetime
 import gradio as gr
 from fastapi import FastAPI
 import uvicorn
+from dotenv import load_dotenv
+
+from azure.core.credentials import AzureKeyCredential
+from azure.ai.textanalytics import TextAnalyticsClient
+
+load_dotenv()
+
+AZURE_KEY = os.getenv("AZURE_LANGUAGE_KEY")
+AZURE_ENDPOINT = os.getenv("AZURE_LANGUAGE_ENDPOINT")
+
+credential = AzureKeyCredential(AZURE_KEY)
+
+text_analytics_client = TextAnalyticsClient(
+    endpoint=AZURE_ENDPOINT,
+    credential=credential
+)
 
 BOT_NAME = "SmartBot"
 
@@ -263,6 +279,21 @@ def chatbot():
             print(f"{BOT_NAME}: Sorry, I couldn't understand that.")
             print("Type 'help' to see what I can do.\n")
 
+def analyze_sentiment(text):
+    try:
+        response = text_analytics_client.analyze_sentiment([text])
+
+        document = response[0]
+
+        if document.is_error:
+            return None
+
+        return document.sentiment
+
+    except Exception as e:
+        print(e)
+        return None
+
 def smartbot_response(message, history):
 
     intent = detect_intent(message)
@@ -308,8 +339,28 @@ def smartbot_response(message, history):
     elif intent == "bye":
         return "Goodbye! 👋 Have a wonderful day."
 
+    sentiment = analyze_sentiment(message)
+
+    if sentiment == "positive":
+        return (
+            "😊 I couldn't find a matching command, but your message sounds positive.\n"
+            "Type 'help' to see everything I can do."
+        )
+
+    elif sentiment == "negative":
+        return (
+            "😔 It seems your message has a negative sentiment. "
+            "I hope things improve. Type 'help' if you'd like to explore my features."
+        )
+
+    elif sentiment == "neutral":
+        return (
+            "🙂 I couldn't match that command. Your message appears neutral.\n"
+            "Type 'help' to see my available commands."
+        )
+
     else:
-        return "Sorry, I couldn't understand that. Type 'help' to see my capabilities."
+        return "Sorry, I couldn't understand that."
 
 
 
