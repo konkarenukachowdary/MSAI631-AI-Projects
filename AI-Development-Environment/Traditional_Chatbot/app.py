@@ -1,9 +1,11 @@
+import os
+import re
+import time
 import random
 import datetime
-import time
-import re
 import gradio as gr
-import os
+from fastapi import FastAPI
+import uvicorn
 
 BOT_NAME = "SmartBot"
 
@@ -310,17 +312,19 @@ def smartbot_response(message, history):
         return "Sorry, I couldn't understand that. Type 'help' to see my capabilities."
 
 
+
 demo = gr.ChatInterface(
     fn=smartbot_response,
     title="🤖 SmartBot",
     description="Traditional Rule-Based Personal Assistant"
 )
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+app = FastAPI()
+app = gr.mount_gradio_app(app, demo, path="/")
 
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=port,
-        show_error=True
+if __name__ == "__main__":
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000))
     )
