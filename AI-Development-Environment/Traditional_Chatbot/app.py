@@ -3,7 +3,7 @@ import datetime
 import time
 import re
 import gradio as gr
-
+import os
 
 BOT_NAME = "SmartBot"
 
@@ -317,7 +317,10 @@ demo = gr.ChatInterface(
 )
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+
     demo.launch(
         server_name="0.0.0.0",
-        server_port=7860
+        server_port=port,
+        show_error=True
     )
