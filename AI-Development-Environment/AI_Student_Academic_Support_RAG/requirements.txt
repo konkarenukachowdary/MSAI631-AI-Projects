@@ -1,0 +1,9 @@
+gradio
+sentence-transformers==5.1.0
+faiss-cpu
+transformers
+torch
+accelerate
+pypdf
+numpy
+pytest
